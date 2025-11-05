@@ -1,0 +1,100 @@
+---
+title: "4-Point Line"
+output: html_document
+date: "2025-11-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+bucks <- read.csv("bucks.csv")
+
+bucks2024 <- bucks %>%
+  filter(season == "2024") %>%
+  mutate(x_adjusted = coordinate_x_raw - 25) %>%
+  #use the pythagorian theorem the calculate the distance from the basket.
+  mutate(distance = sqrt(x_adjusted^2 + coordinate_y_raw^2)) %>%
+  #makes scoring play numeric so you can calculate FG%
+  mutate(make_miss = as.numeric(scoring_play))
+
+#filters all shots by shots beyond the three point line
+threes <- bucks2024 %>%
+  filter(coordinate_y_raw >= 14 & distance >= 23.75
+         | coordinate_y_raw < 14 & distance >= 22)
+#takes the mean of make miss to find the FG percentage
+FG3 <- mean(threes$make_miss)
+
+#filters all shots by shots inside the three point line
+twos <- bucks2024 %>%
+  filter(coordinate_y_raw >= 14 & distance <= 23.75
+         | coordinate_y_raw <= 14 & distance <= 22)
+#takes the mean of make miss to find the FG percentage
+FG2 <- mean(twos$make_miss)
+
+#calculates the expected amount of points scored without the 4 point shot
+Ex_points <- FG3*nrow(threes)*3 + FG2*nrow(twos)*2
+
+FG2
+FG3
+Ex_points
+```
+
+Calculate Fg percentage beyond certain distances
+
+```{r}
+
+ft25 <- bucks2024 %>% filter(distance >= 25)
+ft25fg <- mean(ft25$make_miss)
+ft25fg
+
+ft26 <- bucks2024 %>% filter(distance >= 26)
+ft26fg <- mean(ft26$make_miss)
+ft26fg
+
+ft27 <- bucks2024 %>% filter(distance >= 27)
+ft27fg <- mean(ft27$make_miss)
+ft27fg
+
+ft28 <- bucks2024 %>% filter(distance >= 28)
+ft28fg <- mean(ft28$make_miss)
+ft28fg
+
+ft29 <- bucks2024 %>% filter(distance >= 29)
+ft29fg <- mean(ft29$make_miss)
+ft29fg
+
+ft30 <- bucks2024 %>% filter(distance >= 30)
+ft30fg <- mean(ft30$make_miss)
+ft30fg
+
+ft31 <- bucks2024 %>% filter(distance >= 31)
+ft31fg <- mean(ft31$make_miss)
+ft31fg
+
+ft32 <- bucks2024 %>% filter(distance >= 32)
+ft32fg <- mean(ft32$make_miss)
+ft32fg
+
+
+```
+Because I want the 4 point line to be a good amount lower than the three point FG percentage, I will make the 4 point line an arc that is 31 feet away from the basket from sideline to sideline.
+
+```{r}
+
+new_3 <- threes %>% filter(distance < 31)
+new_3FG <- mean(new_3$make_miss)
+new_3FG
+
+new_Ex_point <- new_3FG*nrow(new_3)*3 + ft31fg*nrow(ft31)*4 + FG2*nrow(twos)*2
+new_Ex_point
+
+new_Ex_point - Ex_points
+```
+
+A consequence of this change in the total amount of points scorred in the 2024 season by the bucks will increase by 34.
+
