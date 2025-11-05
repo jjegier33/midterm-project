@@ -1,0 +1,103 @@
+---
+title: "Code"
+output: html_document
+date: "2025-11-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r eval=FALSE}
+tictoc::tic()
+progressr::with_progress({
+  nba_pbp <- hoopR::load_nba_pbp(2005:2024)
+})
+tictoc::toc()
+  #Downloads all of the basketball data.
+shooting <- nba_pbp %>% filter(shooting_play == TRUE)
+  #filters data so it is only plays where a shot was taken
+bucks <- shooting %>% filter(home_team_id == 15 | away_team_id == 15) %>%
+  select(scoring_play,coordinate_x_raw,coordinate_y_raw,season)
+  #filters by only plays where the team that shot and then only shows the coordinates of shots, the season, and if the shot was made or not.
+write.csv(bucks, "bucks.csv", row.names = FALSE)
+  #Saves the data as a CSV. This saves time as I can just call the CSV data instead of having to wait for the rest of the data to load.
+```
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(ggplot2)
+library(tidyverse)
+library(ggforce)
+
+bucks <- read.csv("bucks.csv")
+  #calls back in the Bucks data
+  #Next section makes the basketball court. Code for the court found online: https://gist.github.com/edkupfer/6354404
+plot1 <- ggplot(data=data.frame(x=1,y=1),aes(x,y))+
+   ###outside box:
+geom_path(data=data.frame(x=c(-25,-25,25,25,-25),y=c(0,47,47,0,0)))+
+   ###solid FT semicircle above FT line:
+geom_path(data=data.frame(x=c(-6000:(-1)/1000,1:6000/1000),y=c(19+sqrt(6^2-c(-6000:(-1)/1000,1:6000/1000)^2))),aes(x=x,y=y))+
+   ###dashed FT semicircle below FT line:
+geom_path(data=data.frame(x=c(-6000:(-1)/1000,1:6000/1000),y=c(19-sqrt(6^2-c(-6000:(-1)/1000,1:6000/1000)^2))),aes(x=x,y=y),linetype='dashed')+
+   ###key:
+geom_path(data=data.frame(x=c(-8,-8,8,8,-8),y=c(0,19,19,0,0)))+
+   ###box inside the key:
+geom_path(data=data.frame(x=c(-6,-6,6,6,-6),y=c(0,19,19,0,0)))+
+   ###restricted area semicircle:
+geom_path(data=data.frame(x=c(-4000:(-1)/1000,1:4000/1000),y=c(5.25+sqrt(4^2-c(-4000:(-1)/1000,1:4000/1000)^2))),aes(x=x,y=y))+
+   ###halfcourt semicircle:
+geom_path(data=data.frame(x=c(-6000:(-1)/1000,1:6000/1000),y=c(47-sqrt(6^2-c(-6000:(-1)/1000,1:6000/1000)^2))),aes(x=x,y=y))+
+   ###rim:
+geom_path(data=data.frame(x=c(-750:(-1)/1000,1:750/1000,750:1/1000,-1:-750/1000),y=c(c(5.25+sqrt(0.75^2-c(-750:(-1)/1000,1:750/1000)^2)),c(5.25-sqrt(0.75^2-c(750:1/1000,-1:-750/1000)^2)))),aes(x=x,y=y))+
+   ###backboard:
+geom_path(data=data.frame(x=c(-3,3),y=c(4,4)),lineend='butt')+
+   ###three-point line:
+geom_path(data=data.frame(x=c(-22,-22,-22000:(-1)/1000,1:22000/1000,22,22),y=c(0,169/12,5.25+sqrt(23.75^2-c(-22000:(-1)/1000,1:22000/1000)^2),169/12,0)),aes(x=x,y=y))+
+   ###fix aspect ratio to 1:1
+coord_fixed()
+
+library(hexbin)
+
+plot2_fg <- plot1 +
+  #next section bins the data by location. Bins are made as hexagons. 
+  stat_summary_hex(
+    data = bucks,
+    aes(x = (coordinate_x_raw - 25),
+          #25 is subtracted to adjust the data to fit the court
+        y = (coordinate_y_raw + 5.25),
+          #5.25 is added to adjust the data to fit the court
+        z = as.numeric(scoring_play)),   # 1 = made, 0 = missed
+      #having 1 be a make a 0 be a miss means that you can take the mean to find fg percentage
+    fun = mean,                          # average = FG%
+    bins = 40,
+      #will make 40 different bins
+    alpha = .9
+      #alpha was set to .9 so you can still see the court in the background
+  ) +
+      #creates a gradient for those bins using a scale
+  scale_fill_viridis_c(
+    limits = c(0,1),                     # FG% between 0 and 1
+    labels = scales::percent_format(accuracy = 1),
+    name = "FG%"
+  ) +
+  ylim(0, 47)+
+    #limits the data from 0 to 47 to get rid of data over half court as it is not relavent to my analysis
+  xlim(-25,25)+
+    #Limits the grid to the sidelines
+  theme_void()
+    #gets rid of grid lines
+plot3 <- plot2_fg +
+    #ghanges the color of the gradient
+  scale_fill_gradient(
+    low = "#EEE1C6",    # Bucks cream city color for low FG%
+    high = "#00471B", # Bucks Green for high FG%
+    name = "FG%"
+  )+
+  facet_wrap(~season)
+    #seperates the data by season and creates a plot for each season
+plot3
+```
+
+
+

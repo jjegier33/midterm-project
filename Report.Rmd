@@ -1,0 +1,32 @@
+---
+title: "Report"
+output: word_document
+date: "2025-11-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Here is the shot chart for the bucks from 2005 until 2024:
+
+![](shotchart.png)
+
+Findings:
+
+  1. Distance of shots increases and the year increase.
+  
+  2. Players have become better shooters as years go on.
+  
+  3. As the years have gone on shots have been more concentrated as threes and short 2s.
+  
+
+In depth:
+
+  1. In the first couple years, shoots behind the three point line are very close to the line without much spread away from the line. For each year moving forward, I observed that the spread of shots seems to get further and further away every year. 
+  
+  2. In addition to players taking shots from further away, I also observed that people seem to be making those further away shots at higher percentages as the years progress. In the graphic you can see that the color of the shots seem to be getting a darker green which a darker green means a higher field goal percentage. 
+  
+  3. The final observation I made from the graphic was that the shots through out the years have been getting more concentrated on shots close to the basket and behind the three point line and less shots in between. In the earlier years there seems to be a pretty even spread throughout everywhere between the three point line, but in the later year you can see that the area whithout shots infront of the threepoint line seems to get expand. 
+  
+  
+  
